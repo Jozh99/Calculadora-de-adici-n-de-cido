@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3f6ef">
+  <meta name="description" content="Estima los gramos de ácido comercial para ajustar por grados Dornic o pH la crema al 40 % de grasa.">
+  <title>Calculadora de acidez y pH · Crema al 40 %</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+  <script src="./install.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <span class="wordmark"><span class="brand-mark" aria-hidden="true">°D</span> Control de acidez</span>
+      <nav aria-label="Navegación principal"><a href="#metodo">Fórmula y pasos</a></nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="intro">
+      <p class="context">Crema al 40 % de grasa</p>
+      <h1>Calculadora de acidez</h1>
+      <p class="intro-copy">Estima cuántos gramos de ácido comercial agregar para aumentar la acidez titulable (°D) o bajar el pH.</p>
+      <div class="install-tools" id="install-tools" hidden>
+        <button class="install-button" id="install-button" type="button" hidden>Instalar app</button>
+        <details class="install-help" id="install-help">
+          <summary>Cómo instalar la app</summary>
+          <ul>
+            <li><strong>Android.</strong> Abre el menú de Chrome y elige <strong>Instalar</strong> o <strong>Agregar a la pantalla principal</strong>.</li>
+            <li><strong>iPhone.</strong> En Safari, toca <strong>Compartir</strong> y luego <strong>Agregar a Inicio</strong>. Activa <strong>Abrir como app web</strong> si aparece.</li>
+          </ul>
+          <p id="offline-status" role="status">Abre la calculadora con internet la primera vez para preparar el uso sin conexión.</p>
+        </details>
+      </div>
+    </div>
+
+    <noscript><p class="notice">Activa JavaScript en tu navegador para usar la calculadora.</p></noscript>
+
+    <div class="calculator">
+      <section class="input-card" aria-labelledby="lote-title">
+        <h2 id="lote-title">Datos del lote</h2>
+        <form id="calculator-form" novalidate>
+          <fieldset class="mode-picker">
+            <legend>Medición que quieres ajustar</legend>
+            <div class="mode-options">
+              <label><input type="radio" name="mode" value="dornic" checked><span>Acidez titulable (°D)</span></label>
+              <label><input type="radio" name="mode" value="ph" id="mode-ph"><span>pH</span></label>
+            </div>
+          </fieldset>
+          <div class="batch-grid">
+            <div class="field">
+              <label for="volume">Cantidad de crema</label>
+              <div class="quantity-entry">
+                <input id="volume" type="text" inputmode="decimal" required>
+                <div class="select-shell"><select id="batch-unit" aria-label="Unidad de cantidad del lote">
+                  <option value="L">L</option><option value="mL">mL</option><option value="kg">kg</option><option value="g">g</option><option value="mg">mg</option>
+                </select></div>
+              </div>
+            </div>
+            <div class="field">
+              <label for="initial" data-metric-label="initial">Acidez inicial<span class="sr-only"> en grados Dornic</span></label>
+              <div class="input-shell"><input id="initial" type="text" inputmode="decimal" required><span aria-hidden="true" data-metric-unit>°D</span></div>
+            </div>
+            <div class="field">
+              <label for="target" data-metric-label="target">Acidez objetivo<span class="sr-only"> en grados Dornic</span></label>
+              <div class="input-shell"><input id="target" type="text" inputmode="decimal" required><span aria-hidden="true" data-metric-unit>°D</span></div>
+            </div>
+          </div>
+
+          <div class="product-grid">
+            <div class="field">
+              <label for="acid">Tipo de ácido</label>
+              <div class="select-shell">
+                <select id="acid" required>
+                  <option value="" disabled selected>Selecciona un ácido</option>
+                  <option value="lactico">Ácido láctico</option>
+                  <option value="acetico">Ácido acético</option>
+                  <option value="citrico-anhidro">Ácido cítrico anhidro</option>
+                  <option value="citrico-monohidratado">Ácido cítrico monohidratado</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="purity">Pureza<span class="sr-only"> en porcentaje en masa</span></label>
+              <div class="input-shell"><input id="purity" type="text" inputmode="decimal" aria-describedby="purity-note" required><span aria-hidden="true">% m/m</span></div>
+            </div>
+          </div>
+          <p class="field-note" id="purity-note">Usa el porcentaje en masa de la ficha técnica del producto.</p>
+
+          <div class="field ph-factor" id="ph-factor-field" hidden>
+            <label for="ph-factor">Factor validado de pH</label>
+            <div class="input-shell"><input id="ph-factor" type="text" inputmode="decimal" aria-describedby="ph-factor-note" required disabled><span aria-hidden="true">g/L/pH</span></div>
+            <p class="field-note" id="ph-factor-note">Gramos de ácido puro por litro por cada unidad de pH que baja. Usa un factor válido para tu crema, el ácido elegido y el intervalo de pH.</p>
+          </div>
+
+          <details class="pilot" id="pilot">
+            <summary>Calibración con prueba piloto <span class="pilot-tag">Opcional</span></summary>
+            <p class="field-note">Usa mediciones de la misma crema y del ácido seleccionado. Registra la acidez antes y después con el mismo método de titulación.</p>
+            <label class="check-label" for="use-pilot">
+              <input type="checkbox" id="use-pilot" aria-controls="pilot-fields">
+              Usar el factor de la prueba piloto
+            </label>
+            <p id="pilot-status" class="field-note" role="status"></p>
+            <fieldset class="pilot-grid" id="pilot-fields" hidden disabled>
+              <legend class="sr-only">Mediciones de la prueba piloto</legend>
+              <div class="field">
+                <label for="pilot-volume">Cantidad del piloto</label>
+                <div class="quantity-entry">
+                  <input id="pilot-volume" type="text" inputmode="decimal" required>
+                  <div class="select-shell"><select id="pilot-unit" aria-label="Unidad de cantidad del piloto">
+                    <option value="L">L</option><option value="mL">mL</option><option value="kg">kg</option><option value="g">g</option><option value="mg">mg</option>
+                  </select></div>
+                </div>
+              </div>
+              <div class="field">
+                <label for="pilot-initial">Acidez inicial<span class="sr-only"> en grados Dornic</span></label>
+                <div class="input-shell"><input id="pilot-initial" type="text" inputmode="decimal" required><span aria-hidden="true">°D</span></div>
+              </div>
+              <div class="field">
+                <label for="pilot-final">Acidez medida<span class="sr-only"> en grados Dornic</span></label>
+                <div class="input-shell"><input id="pilot-final" type="text" inputmode="decimal" required><span aria-hidden="true">°D</span></div>
+              </div>
+              <div class="field">
+                <label for="pilot-mass">Producto agregado<span class="sr-only"> en gramos</span></label>
+                <div class="input-shell"><input id="pilot-mass" type="text" inputmode="decimal" required><span aria-hidden="true">g</span></div>
+              </div>
+              <div class="field">
+                <label for="pilot-purity">Pureza del piloto<span class="sr-only"> en porcentaje en masa</span></label>
+                <div class="input-shell"><input id="pilot-purity" type="text" inputmode="decimal" required><span aria-hidden="true">% m/m</span></div>
+              </div>
+            </fieldset>
+          </details>
+
+          <div class="field density" id="density-field" hidden>
+            <label for="density">Densidad de la crema<span class="sr-only"> en kilogramos por litro</span></label>
+            <div class="input-shell"><input id="density" type="text" inputmode="decimal" aria-describedby="density-note" required disabled><span aria-hidden="true">kg/L</span></div>
+            <p class="field-note" id="density-note">Ingresa la densidad medida de la crema para convertir su masa a litros.</p>
+          </div>
+
+          <p class="form-error" id="form-error" role="alert" hidden></p>
+          <div class="form-actions">
+            <button type="submit" class="calculate">Calcular dosis</button>
+            <button type="button" class="clear" id="clear-form">Borrar todo</button>
+          </div>
+          <p class="sr-only" id="clear-status" role="status"></p>
+        </form>
+      </section>
+
+      <section class="result-card" aria-labelledby="result-title">
+        <div class="result-heading">
+          <h2 id="result-title">Dosis estimada</h2>
+          <span id="result-mode" class="result-mode" hidden></span>
+        </div>
+        <div class="result-main" id="result-main">
+          <output id="result-mass" class="mass" aria-label="Gramos de producto comercial" aria-live="polite" aria-atomic="true"><span id="mass-value">—</span><span class="mass-unit">g</span></output>
+          <p id="result-message">Completa los datos del lote para obtener la dosis.</p>
+        </div>
+        <dl class="result-details">
+          <div><dt id="delta-label">Aumento de acidez</dt><dd id="result-delta">—</dd></div>
+          <div><dt>Factor aplicado</dt><dd id="result-factor">—</dd></div>
+        </dl>
+        <details class="result-work" id="result-work" hidden>
+          <summary>Ver cálculo con tus datos</summary>
+          <ol id="worked-steps"></ol>
+        </details>
+      </section>
+    </div>
+
+    <aside class="notice" aria-labelledby="notice-title">
+      <span class="notice-mark" aria-hidden="true">!</span>
+      <div>
+        <h2 id="notice-title">Confirma el resultado</h2>
+        <p id="notice-copy">El cálculo con los factores de referencia es teórico. Haz una prueba piloto y confirma la acidez por titulación con el mismo método antes y después de agregar el ácido.</p>
+      </div>
+    </aside>
+
+    <section class="method" id="metodo" aria-labelledby="method-title">
+      <h2 id="method-title">Fórmula y pasos</h2>
+      <p class="unit-reference">1 L = 1 000 mL · 1 kg = 1 000 g = 1 000 000 mg</p>
+      <div class="method-grid" id="method-dornic">
+        <div class="reference-card">
+          <table>
+            <caption>Factores teóricos</caption>
+            <thead><tr><th scope="col">Ácido</th><th scope="col">g/L/°D</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Láctico</th><td>0,1000</td></tr>
+              <tr><th scope="row">Acético</th><td>0,0667</td></tr>
+              <tr><th scope="row">Cítrico anhidro</th><td>0,0711</td></tr>
+              <tr><th scope="row">Cítrico monohidratado</th><td>0,0778</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="formula">
+          <h3>Dosis por acidez titulable</h3>
+          <ol>
+            <li><strong>Convierte a litros.</strong> Divide los mL entre 1 000. Si pesaste la crema, convierte a kg y divide entre la densidad en kg/L.</li>
+            <li><strong>Calcula el aumento.</strong> Δ°D = °D objetivo − °D inicial. Indica cuánto quieres subir la acidez titulable.</li>
+            <li><strong>Elige el factor F.</strong> La tabla da gramos de ácido puro por litro y por °D. Con un piloto, divide sus gramos de ácido puro entre sus litros y su aumento medido de °D.</li>
+            <li><strong>Escala y corrige la pureza.</strong> Los litros y el aumento fijan la necesidad de ácido puro. Dividir entre la fracción de pureza da los gramos del producto comercial.</li>
+          </ol>
+          <p class="equation">m = litros × Δ°D × F ÷ (pureza ÷ 100)</p>
+        </div>
+      </div>
+      <div class="formula" id="method-ph" hidden>
+        <h3>Dosis por pH con un factor validado</h3>
+        <ol>
+          <li><strong>Convierte a litros.</strong> El factor se aplica por litro de crema. Divide los mL entre 1 000 o los kg entre la densidad en kg/L.</li>
+          <li><strong>Calcula la bajada.</strong> Resta el pH objetivo del inicial para saber cuánto necesitas bajar.</li>
+          <li><strong>Aplica el factor de pH.</strong> Multiplica los litros y la bajada de pH por el factor validado para obtener los gramos de ácido puro.</li>
+          <li><strong>Corrige la pureza.</strong> Divide entre la fracción de pureza para obtener los gramos de producto comercial que vas a pesar.</li>
+        </ol>
+        <p class="equation">m = litros × (pH inicial − pH objetivo) × F<sub>pH</sub> ÷ (pureza ÷ 100)</p>
+        <p>Usa un factor validado para ese intervalo. Si cuentas con una dosificación previa validada, divide los gramos de ácido puro usados entre los litros y la bajada de pH medida para obtener el factor.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
